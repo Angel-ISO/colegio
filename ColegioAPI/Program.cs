@@ -1,3 +1,5 @@
+using AspNetCoreRateLimit;
+using ColegioAPI.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Persistencia;
 
@@ -8,16 +10,21 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 
+builder.Services.AddAplicationService();
+builder.Services.ConfigureCors();
+builder.Services.ConfigureRateLimiting();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+
+
+
 
 builder.Services.AddDbContext<ColegioContext>(options =>
 {
-    string connectionString = builder.Configuration.GetConnectionString("ConexHome");
+    string connectionString = builder.Configuration.GetConnectionString("ConexDb");
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
 });
-
-
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
@@ -28,7 +35,12 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+
+app.UseIpRateLimiting();
+
 app.UseHttpsRedirection();
+
+app.UseCors("CorsPolicy");
 
 app.UseAuthorization();
 

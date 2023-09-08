@@ -22,9 +22,9 @@ public class InscriptionConfiguration : IEntityTypeConfiguration<Inscription>
             .IsRequired();
 
 
-            builder.HasOne(u => u.User)
+            builder.HasOne(u => u.Person)
             .WithMany(a => a.Inscriptions)
-            .HasForeignKey(u => u.IdUser)
+            .HasForeignKey(u => u.IdPerson)
             .IsRequired();
 
               builder.HasOne(u => u.Curso)

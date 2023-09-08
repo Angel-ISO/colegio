@@ -16,6 +16,24 @@ namespace Persistencia.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "Persons",
+                columns: table => new
+                {
+                    Id_Person = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    NamePerson = table.Column<string>(type: "varchar(150)", maxLength: 150, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Lastname = table.Column<string>(type: "varchar(150)", maxLength: 150, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    BIrilDate = table.Column<DateTime>(type: "date", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Persons", x => x.Id_Person);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "Rol",
                 columns: table => new
                 {
@@ -27,25 +45,6 @@ namespace Persistencia.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Rol", x => x.Id_Rol);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
-
-            migrationBuilder.CreateTable(
-                name: "User",
-                columns: table => new
-                {
-                    Id_User = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    NameUser = table.Column<string>(type: "varchar(150)", maxLength: 150, nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    Email = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    Password = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4")
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_User", x => x.Id_User);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -63,10 +62,64 @@ namespace Persistencia.Migrations
                 {
                     table.PrimaryKey("PK_curso", x => x.Id_curso);
                     table.ForeignKey(
-                        name: "FK_curso_User_IdProfe",
+                        name: "FK_curso_Persons_IdProfe",
                         column: x => x.IdProfe,
-                        principalTable: "User",
-                        principalColumn: "Id_User",
+                        principalTable: "Persons",
+                        principalColumn: "Id_Person",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "User",
+                columns: table => new
+                {
+                    Id_User = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    PersonId = table.Column<int>(type: "int", nullable: false),
+                    NameUser = table.Column<string>(type: "varchar(150)", maxLength: 150, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Email = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Password = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_User", x => x.Id_User);
+                    table.ForeignKey(
+                        name: "FK_User_Persons_PersonId",
+                        column: x => x.PersonId,
+                        principalTable: "Persons",
+                        principalColumn: "Id_Person",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "Inscription",
+                columns: table => new
+                {
+                    Id_Inscriptio = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    IdPerson = table.Column<int>(type: "int", nullable: false),
+                    fechainscripcion = table.Column<DateTime>(type: "date", nullable: false),
+                    Id_Curso = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Inscription", x => x.Id_Inscriptio);
+                    table.ForeignKey(
+                        name: "FK_Inscription_Persons_IdPerson",
+                        column: x => x.IdPerson,
+                        principalTable: "Persons",
+                        principalColumn: "Id_Person",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Inscription_curso_Id_Curso",
+                        column: x => x.Id_Curso,
+                        principalTable: "curso",
+                        principalColumn: "Id_curso",
                         onDelete: ReferentialAction.Cascade);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
@@ -96,34 +149,6 @@ namespace Persistencia.Migrations
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
-            migrationBuilder.CreateTable(
-                name: "Inscription",
-                columns: table => new
-                {
-                    Id_Inscriptio = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    IdUser = table.Column<int>(type: "int", nullable: false),
-                    fechainscripcion = table.Column<DateTime>(type: "date", nullable: false),
-                    Id_Curso = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Inscription", x => x.Id_Inscriptio);
-                    table.ForeignKey(
-                        name: "FK_Inscription_User_IdUser",
-                        column: x => x.IdUser,
-                        principalTable: "User",
-                        principalColumn: "Id_User",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Inscription_curso_Id_Curso",
-                        column: x => x.Id_Curso,
-                        principalTable: "curso",
-                        principalColumn: "Id_curso",
-                        onDelete: ReferentialAction.Cascade);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
-
             migrationBuilder.CreateIndex(
                 name: "IX_curso_IdProfe",
                 table: "curso",
@@ -135,9 +160,15 @@ namespace Persistencia.Migrations
                 column: "Id_Curso");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Inscription_IdUser",
+                name: "IX_Inscription_IdPerson",
                 table: "Inscription",
-                column: "IdUser");
+                column: "IdPerson");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_User_PersonId",
+                table: "User",
+                column: "PersonId",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_UserRols_RolId",
@@ -162,6 +193,9 @@ namespace Persistencia.Migrations
 
             migrationBuilder.DropTable(
                 name: "User");
+
+            migrationBuilder.DropTable(
+                name: "Persons");
         }
     }
 }

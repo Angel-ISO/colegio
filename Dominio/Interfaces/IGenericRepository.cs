@@ -6,6 +6,7 @@ public interface IGenericRepository<T> where T : BaseEntityA
 {
     Task<T> GetByIdAsync(int id);
     Task<IEnumerable<T>> GetAllAsync();
+    Task<(int totalRegistros, IEnumerable<T> registros)> GetAllAsync (int pageIndex, int pageSize, string search);
     IEnumerable<T> Find(Expression<Func<T, bool>> expression);
     void Add (T entity);
     void AddRange(IEnumerable<T> entities);

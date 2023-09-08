@@ -4,7 +4,7 @@ namespace Dominio;
     {
         public string NameCourse { get; set; }
         public int IdProfe { get; set; }
-        public User User { get; set;}
+        public Person Person { get; set;}
 
         public ICollection<Inscription> Inscriptions { get; set; }
 

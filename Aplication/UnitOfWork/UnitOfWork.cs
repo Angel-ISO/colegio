@@ -12,6 +12,7 @@ public class UnitOfWork : IUnitOfWork, IDisposable
     private RolRepository _Rol;
     private InscriptionRepository _Inscription;  
     private CursoRepository _Curso;
+    private PersonRepository _Person;  
     public UnitOfWork(ColegioContext context)
     {
         _context = context;
@@ -28,6 +29,19 @@ public class UnitOfWork : IUnitOfWork, IDisposable
             return _Usuario = new UserRepository(_context);
         }
     }
+
+     public IPerson Persons
+    {
+        get
+        {
+            if (_Person is not null)
+            {
+                return _Person;
+            }
+            return _Person = new PersonRepository(_context);
+        }
+    }
+
 
 
 
@@ -57,7 +71,7 @@ public class UnitOfWork : IUnitOfWork, IDisposable
     }
 
 
-    public IRol Roles
+    public IRol Rols
     {
         get
         {

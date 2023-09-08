@@ -26,7 +26,7 @@ public class CursoConfiguration : IEntityTypeConfiguration<Curso>
 
 
 
-            builder.HasOne(u => u.User)
+            builder.HasOne(u => u.Person)
             .WithMany(a => a.Cursos)
             .HasForeignKey(u => u.IdProfe)
             .IsRequired();

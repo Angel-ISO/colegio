@@ -6,7 +6,6 @@ using Dominio;
 
 namespace Dominio.Interfaces;
 
-    public interface IPerson : IGenericRepository<Person>
-    {
-  
-    }
+public interface IPerson : IGenericRepository<Person>
+{
+}

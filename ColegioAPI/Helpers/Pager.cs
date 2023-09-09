@@ -1,4 +1,4 @@
-namespace IncidenceAPI.Helpers;
+namespace ColegioAPI.Helpers;
 
 public class Pager<T> where T : class
 {

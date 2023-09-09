@@ -7,7 +7,7 @@ namespace Dominio;
     public class Person : BaseEntityA
     {
 
-        public User User { get; set; }   // Reference navigation to dependent
+        //public User User { get; set; }   // Reference navigation to dependent
         public string Name { get; set; }
         public string Lastname { get; set; }
         public DateTime BirthDate { get; set; }

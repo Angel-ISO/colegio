@@ -19,11 +19,11 @@ public class ColegioContext : DbContext {
     
        protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-         modelBuilder.Entity<User>()
-        .HasOne(e => e.Person)
-        .WithOne(e => e.User)
-        .HasForeignKey<User>(e => e.PersonId)
-        .IsRequired();
+        //  modelBuilder.Entity<User>()
+        // .HasOne(e => e.Person)
+        // .WithOne(e => e.User)
+        // .HasForeignKey<User>(e => e.PersonId)
+        // .IsRequired();
 
         base.OnModelCreating(modelBuilder);
         modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());

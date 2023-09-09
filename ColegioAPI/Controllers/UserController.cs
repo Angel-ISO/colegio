@@ -1,18 +1,13 @@
-/* 
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
-using API.Services;
-using API.Dtos;
+using ColegioAPI.Services;
+using ColegioAPI.Dtos;
 
-namespace API.Controllers;
+namespace ColegioAPI.Controllers;
 
-   public class UsuariosController : BaseApiController
+   public class UserController : BaseApiController
 {
     private readonly IUserService _userService;
-    public UsuariosController(IUserService userService)
+    public UserController(IUserService userService)
     {
         _userService = userService;
     }
@@ -36,4 +31,26 @@ namespace API.Controllers;
         var result = await _userService.AddRoleAsync(model);
         return Ok(result);
     }
-} */
+    [HttpPost("refresh")]
+    public async Task<IActionResult> RefreshToken()
+    {
+        var refreshToken = Request.Cookies["refreshToken"];
+        var response = await _userService.RefreshTokenAsync(refreshToken);
+        if (!string.IsNullOrEmpty(response.RefreshToken))
+            SetRefreshTokenInCookie(response.RefreshToken);
+        return Ok(response);
+    }
+
+
+    private void SetRefreshTokenInCookie(string refreshToken)
+    {
+        var cookieOptions = new CookieOptions
+        {
+            HttpOnly = true,
+            Expires = DateTime.UtcNow.AddDays(10),
+        };
+        Response.Cookies.Append("refreshToken", refreshToken, cookieOptions);
+    }
+
+
+} 

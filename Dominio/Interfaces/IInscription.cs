@@ -8,5 +8,4 @@ namespace Dominio.Interfaces;
 
     public interface IInscription : IGenericRepository<Inscription>
     {
-  
     }

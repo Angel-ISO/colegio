@@ -12,5 +12,6 @@ public class InscriptionRepository : GenericRepository<Inscription>, IInscriptio
     public InscriptionRepository(ColegioContext context) : base(context)
     {
         
-    }
+    }     
+    
 }

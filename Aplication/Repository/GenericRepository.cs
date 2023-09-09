@@ -1,8 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Threading.Tasks;
 using Dominio;
 using Dominio.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -62,5 +58,14 @@ public class GenericRepository<T> : IGenericRepository<T> where T : BaseEntityA
     {
         _context.Set<T>()
             .Update(entity);
+    }
+     public virtual async Task<(int totalRegistros, IEnumerable<T> registros)> GetAllAsync(int pageIndex, int pageSize, string _search)
+    {
+        var totalRegistros = await _context.Set<T>().CountAsync();
+        var registros = await _context.Set<T>()
+            .Skip((pageIndex - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+        return (totalRegistros, registros);
     }
 }

@@ -1,4 +1,4 @@
-using InsidenceAPI.Dtos;
+using ColegioAPI.Dtos;
 using Dominio;
 using AutoMapper;
 using persistencia.Configuration;
@@ -11,10 +11,15 @@ namespace InsidenceAPI.Profiles;
     public class MappingPofiles : Profile
     {
       public MappingPofiles(){
-        CreateMap<Person, PersonDto>().ReverseMap();
-        CreateMap<Rol, Rol>().ReverseMap();
+          CreateMap<Rol, RolDto>().ReverseMap().ForMember(o => o.Users,d => d.Ignore());
+          CreateMap<Curso, CursoDto>().ReverseMap();
+          CreateMap<Person, PersonDto>().ReverseMap();
+          CreateMap<Inscription, InscriptionDto>().ReverseMap();
 
 
-        CreateMap<Rol, RolxPersonDto>().ReverseMap();
+          //herencia con  query string 
+
+          CreateMap<Person, PersonXcursoDto>().ReverseMap();
+          CreateMap<Person, PersonxIncriptionDto>().ReverseMap();
       }
     }

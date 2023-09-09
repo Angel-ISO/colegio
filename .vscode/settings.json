@@ -1,6 +1,7 @@
 {
     "conventionalCommits.scopes": [
         "colegio base",
-        "patreon repository"
+        "patreon repository",
+        "token flow"
     ]
 }

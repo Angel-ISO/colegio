@@ -110,7 +110,7 @@ public class UserService : IUserService
 
 
 
-    public async Task<DatosUsuarioDto> GetTokenAsync(LoginDto model)
+   /*  public async Task<DatosUsuarioDto> GetTokenAsync(LoginDto model)
     {
         DatosUsuarioDto datosUsuarioDto = new DatosUsuarioDto();
         var usuario = await _unitOfWork.Users
@@ -155,8 +155,59 @@ public class UserService : IUserService
 
         return datosUsuarioDto;
 
-    }
+    } */
 
+
+
+ public async Task<DatosUsuarioDto> GetTokenAsync(LoginDto model)
+    {
+        DatosUsuarioDto userDataDto = new DatosUsuarioDto();
+        var user = await _unitOfWork.Users
+                    .GetByUserNameAsync(model.UserName);
+
+        if (user == null)
+        {
+            userDataDto.EstaAutenticado = false;
+            userDataDto.Mensaje = $"User does not exists {model.UserName}.";
+            return userDataDto;
+        }
+
+        var result = _passwordHasher.VerifyHashedPassword(user, user.Password, model.Password);
+
+        if (result == PasswordVerificationResult.Success)
+        {
+            userDataDto.Mensaje = "OK";
+            userDataDto.EstaAutenticado = true;
+            JwtSecurityToken jwtSecurityToken = CreateJwtToken(user);
+            userDataDto.Token = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken);
+            userDataDto.Email = user.Email;
+            userDataDto.UserName = user.NameUser;
+            userDataDto.Rols = user.Rols
+                                            .Select(u => u.NameRol)
+                                            .ToList();
+
+            if (user.RefreshTokens.Any(a => a.IsActive))
+            {
+                var activeRefreshToken = user.RefreshTokens.Where(a => a.IsActive == true).FirstOrDefault();
+                userDataDto.RefreshToken = activeRefreshToken.Token;
+                userDataDto.RefreshTokenExpiration = activeRefreshToken.Expires;
+            }
+            else
+            {
+                var refreshToken = CreateRefreshToken();
+                userDataDto.RefreshToken = refreshToken.Token;
+                userDataDto.RefreshTokenExpiration = refreshToken.Expires;
+                user.RefreshTokens.Add(refreshToken);
+                _unitOfWork.Users.Update(user);
+                await _unitOfWork.SaveAsync();
+            }
+
+            return userDataDto;
+        }
+        userDataDto.EstaAutenticado = false;
+        userDataDto.Mensaje = $"Invalid Credentials {user.NameUser}.";
+        return userDataDto;
+    }
   
 
     public async Task<DatosUsuarioDto> RefreshTokenAsync(string refreshToken)

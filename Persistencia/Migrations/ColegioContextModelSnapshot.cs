@@ -158,14 +158,14 @@ namespace Persistencia.Migrations
                     b.Property<string>("Email")
                         .HasColumnType("longtext");
 
-                    b.Property<string>("NameUser")
+                    b.Property<string>("Password")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Username")
                         .IsRequired()
                         .HasMaxLength(150)
                         .HasColumnType("varchar")
                         .HasColumnName("NameUser");
-
-                    b.Property<string>("Password")
-                        .HasColumnType("longtext");
 
                     b.HasKey("Id");
 

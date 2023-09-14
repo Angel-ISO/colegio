@@ -29,14 +29,14 @@ public class UserService : IUserService
             var usuario = new User
             {
                 Email = registerDto.Email,
-                NameUser = registerDto.Username,
+                Username = registerDto.Username,
 
             };
 
             usuario.Password = _passwordHasher.HashPassword(usuario, registerDto.Password);
 
             var usuarioExiste = _unitOfWork.Users
-                                                .Find(u => u.NameUser.ToLower() == registerDto.Username.ToLower())
+                                                .Find(u => u.Username.ToLower() == registerDto.Username.ToLower())
                                                 .FirstOrDefault();
 
             if (usuarioExiste == null)
@@ -104,7 +104,7 @@ public class UserService : IUserService
             return $"Rol {model.Role} no encontrado.";
         }
 
-        return $"Credenciales incorrectas para el ususario {usuario.NameUser}.";
+        return $"Credenciales incorrectas para el ususario {usuario.Username}.";
     }
 
 
@@ -114,12 +114,12 @@ public class UserService : IUserService
     {
         DatosUsuarioDto datosUsuarioDto = new DatosUsuarioDto();
         var usuario = await _unitOfWork.Users
-                                                    .GetByUserNameAsync(model.UserName);
+                                                    .GetByUserNameAsync(model.Username);
 
         if (usuario == null)
         {
             datosUsuarioDto.EstaAutenticado = false;
-            datosUsuarioDto.Mensaje = $"No existe ningun usuario con el username {model.UserName}.";
+            datosUsuarioDto.Mensaje = $"No existe ningun usuario con el username {model.Username}.";
             return datosUsuarioDto;
         }
 
@@ -132,7 +132,7 @@ public class UserService : IUserService
             {
                 JwtSecurityToken jwtSecurityToken = CreateJwtToken(usuario);
                 datosUsuarioDto.Token = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken);
-                datosUsuarioDto.UserName = usuario.NameUser;
+                datosUsuarioDto.Username = usuario.Username;
                 datosUsuarioDto.Email = usuario.Email;
                 datosUsuarioDto.Rols = usuario.Rols
                                                     .Select(p => p.NameRol)
@@ -144,14 +144,14 @@ public class UserService : IUserService
             else
             {
                 datosUsuarioDto.EstaAutenticado = false;
-                datosUsuarioDto.Mensaje = $"Credenciales incorrectas para el usuario {usuario.NameUser}.";
+                datosUsuarioDto.Mensaje = $"Credenciales incorrectas para el usuario {usuario.Username}.";
 
                 return datosUsuarioDto;
             }
         }
 
         datosUsuarioDto.EstaAutenticado = false;
-        datosUsuarioDto.Mensaje = $"Credenciales incorrectas para el usuario {usuario.NameUser}.";
+        datosUsuarioDto.Mensaje = $"Credenciales incorrectas para el usuario {usuario.Username}.";
 
         return datosUsuarioDto;
 
@@ -163,12 +163,12 @@ public class UserService : IUserService
     {
         DatosUsuarioDto userDataDto = new DatosUsuarioDto();
         var user = await _unitOfWork.Users
-                    .GetByUserNameAsync(model.UserName);
+                    .GetByUserNameAsync(model.Username);
 
         if (user == null)
         {
             userDataDto.EstaAutenticado = false;
-            userDataDto.Mensaje = $"User does not exists {model.UserName}.";
+            userDataDto.Mensaje = $"User does not exists {model.Username}.";
             return userDataDto;
         }
 
@@ -181,7 +181,7 @@ public class UserService : IUserService
             JwtSecurityToken jwtSecurityToken = CreateJwtToken(user);
             userDataDto.Token = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken);
             userDataDto.Email = user.Email;
-            userDataDto.UserName = user.NameUser;
+            userDataDto.UserName = user.Username;
             userDataDto.Rols = user.Rols
                                             .Select(u => u.NameRol)
                                             .ToList();
@@ -205,17 +205,19 @@ public class UserService : IUserService
             return userDataDto;
         }
         userDataDto.EstaAutenticado = false;
-        userDataDto.Mensaje = $"Invalid Credentials {user.NameUser}.";
+        userDataDto.Mensaje = $"Invalid Credentials {user.Username}.";
         return userDataDto;
     }
   
-
+/* 
     public async Task<DatosUsuarioDto> RefreshTokenAsync(string refreshToken)
     {
         var dataUserDto = new DatosUsuarioDto();
 
         var usuario = await _unitOfWork.Users
                         .GetByRefreshTokenAsync(refreshToken);
+        Console.WriteLine(refreshToken);
+        Console.WriteLine();
 
         if (usuario == null)
         {
@@ -244,14 +246,14 @@ public class UserService : IUserService
         JwtSecurityToken jwtSecurityToken = CreateJwtToken(usuario);
         dataUserDto.Token = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken);
         dataUserDto.Email = usuario.Email;
-        dataUserDto.UserName = usuario.NameUser;
+        dataUserDto.UserName = usuario.Username;
         dataUserDto.Rols = usuario.Rols
                                         .Select(u => u.NameRol)
                                         .ToList();
         dataUserDto.RefreshToken = newRefreshToken.Token;
         dataUserDto.RefreshTokenExpiration = newRefreshToken.Expires;
         return dataUserDto;
-    }
+    }*/
 
 
     private RefreshToken CreateRefreshToken()
@@ -268,6 +270,86 @@ public class UserService : IUserService
             };
         }
     }
+ 
+
+
+
+public async Task<DatosUsuarioDto> RefreshTokenAsync(string refreshToken)
+{
+    var dataUserDto = new DatosUsuarioDto();
+
+    try
+    {
+        var usuario = await _unitOfWork.Users.GetByRefreshTokenAsync(refreshToken);
+
+        if (usuario == null)
+        {
+            return GenerateTokenNotFoundResponse(dataUserDto);
+        }
+
+        var refreshTokenBd = usuario.RefreshTokens.SingleOrDefault(x => x.Token == refreshToken);
+
+        if (refreshTokenBd == null || !refreshTokenBd.IsActive)
+        {
+            return GenerateInactiveTokenResponse(dataUserDto);
+        }
+
+        refreshTokenBd.Revoked = DateTime.UtcNow;
+
+        var newRefreshToken = CreateRefreshToken();
+
+        usuario.RefreshTokens.Add(newRefreshToken);
+
+        _unitOfWork.Users.Update(usuario);
+        await _unitOfWork.SaveAsync();
+
+        var jwtSecurityToken = CreateJwtToken(usuario);
+
+        PopulateDataUserDto(dataUserDto, usuario, jwtSecurityToken, newRefreshToken);
+
+        return dataUserDto;
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine(ex.Message);
+        return GenerateErrorResponse(dataUserDto);
+    }
+}
+
+private DatosUsuarioDto GenerateTokenNotFoundResponse(DatosUsuarioDto dataUserDto)
+{
+    dataUserDto.EstaAutenticado = false;
+    dataUserDto.Mensaje = "El token no existe. Por favor, genere uno nuevo.";
+    return dataUserDto;
+}
+
+
+private DatosUsuarioDto GenerateInactiveTokenResponse(DatosUsuarioDto dataUserDto)
+{
+    dataUserDto.EstaAutenticado = false;
+    dataUserDto.Mensaje = "Token inactivo.";
+    return dataUserDto;
+}
+
+private DatosUsuarioDto GenerateErrorResponse(DatosUsuarioDto dataUserDto)
+{
+    // Lógica para generar una respuesta de error aquí.
+    // ...
+    return dataUserDto;
+}
+
+private void PopulateDataUserDto(DatosUsuarioDto dataUserDto, User usuario, JwtSecurityToken jwtToken, RefreshToken refreshToken)
+{
+    dataUserDto.EstaAutenticado = true;
+    dataUserDto.Token = new JwtSecurityTokenHandler().WriteToken(jwtToken);
+    dataUserDto.Email = usuario.Email;
+    dataUserDto.UserName = usuario.Username;
+    dataUserDto.Rols = usuario.Rols.Select(u => u.NameRol).ToList();
+    dataUserDto.RefreshToken = refreshToken.Token;
+    dataUserDto.RefreshTokenExpiration = refreshToken.Expires;
+}
+
+
 
 
 
@@ -296,7 +378,7 @@ public class UserService : IUserService
 
         var claims = new[]
         {
-        new Claim(JwtRegisteredClaimNames.Sub, usuario.NameUser),
+        new Claim(JwtRegisteredClaimNames.Sub, usuario.Username),
         new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
         new Claim("uid", usuario.Id.ToString())
     }

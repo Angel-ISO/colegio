@@ -12,7 +12,7 @@ using Persistencia;
 namespace Persistencia.Migrations
 {
     [DbContext(typeof(ColegioContext))]
-    [Migration("20230909223129_InitialCreate")]
+    [Migration("20230913205859_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -161,14 +161,14 @@ namespace Persistencia.Migrations
                     b.Property<string>("Email")
                         .HasColumnType("longtext");
 
-                    b.Property<string>("NameUser")
+                    b.Property<string>("Password")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Username")
                         .IsRequired()
                         .HasMaxLength(150)
                         .HasColumnType("varchar")
                         .HasColumnName("NameUser");
-
-                    b.Property<string>("Password")
-                        .HasColumnType("longtext");
 
                     b.HasKey("Id");
 

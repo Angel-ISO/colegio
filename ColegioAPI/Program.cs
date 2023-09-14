@@ -38,7 +38,7 @@ builder.Services.AddAuthorization(opts =>{
 
 builder.Services.AddDbContext<ColegioContext>(options =>
 {
-    string connectionString = builder.Configuration.GetConnectionString("ConexDb");
+    string connectionString = builder.Configuration.GetConnectionString("ConexHome");
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
 });
 
